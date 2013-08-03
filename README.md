@@ -3,7 +3,7 @@ Perfect Script (ruby)
 a template for the perfect ruby script.
 
 ## About
-The hunt for a perfect script has its origin in a bash code review. Its evolved a bit since then to this amazing piece of awesomesauce. enjoy.
+There's a long history in the hunt for perfect scripts. See the [commentary](https://github.com/kmcminn/perfect-script-ruby/blob/master/COMMENTARY.md) if you're interetsed in the notes in the hyper line-by-line optimization. enjoy!
 
 Please open an issue if you have any ideas on how to improve it! 
 
