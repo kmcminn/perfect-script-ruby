@@ -42,14 +42,6 @@ module ScriptBase
   end
 end
 
-module ListFiles
-  def list_files!(dir)
-    out = `ls -al #{dir}`
-    out
-  end
-end
-
-
 class Script
   include ScriptBase
   attr_accessor :log, :options, :optparse
@@ -60,6 +52,13 @@ class Script
     @optparse = setup_basic_options(@options)
 
   end
+end
+
+module ListFiles
+  def list_files!(dir)
+    out = `ls -al #{dir}`
+    out 
+  end 
 end
 
 class MyScript < Script
