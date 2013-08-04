@@ -24,7 +24,6 @@ module ScriptBase
         @log.level = Logger::DEBUG
       end
     end
-
     oparse
   end
 
@@ -44,13 +43,13 @@ end
 
 class Script
   include ScriptBase
+
   attr_accessor :log, :options, :optparse
 
   def initialize
     @log = setup_logging()
     @options = OpenStruct.new 
     @optparse = setup_basic_options(@options)
-
   end
 end
 
@@ -69,7 +68,6 @@ class MyScript < Script
     @optparse.define('-l LIST', '--list LIST', 'List some files') do |list|
       @options.list = list
     end
-
   end
 end
 
