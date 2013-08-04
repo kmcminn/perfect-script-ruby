@@ -73,7 +73,7 @@ class MyScript < Script
   end
 end
 
-def main()
+def main!
   script = MyScript.new
 
   script.usage "You didn't specify any options" if not ARGV[0]
@@ -85,4 +85,4 @@ def main()
   puts script.list_files!(script.options.list) if script.options.list
 end
 
-main() if __FILE__ == $0
+main!() if __FILE__ == $0
