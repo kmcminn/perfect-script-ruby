@@ -10,29 +10,28 @@ $:.unshift SCRIPT_DIR unless $:.include? SCRIPT_DIR
 
 require 'optparse'
 require 'logger'
+require 'ostruct'
 
 module ScriptBase
-  def setup_basic_options
-    option = OptionParser.new do |opts|
-      opts.banner = "Usage: #{__FILE__} [options]"
+  def setup_basic_options(options, banner=nil)
+    oparse = OptionParser.new do |opts|
+      opts.banner = banner ? banner : "Usage: #{__FILE__} [options]"
       opts.on('-h', '--help', 'Display this help') do
-        usage
+        self.usage
+      end
+      opts.on('-v', '--verbose', 'Turn on verbose') do
+        options.verbose = true
+        @log.level = Logger::DEBUG
       end
     end
 
-    option
+    oparse
   end
 
   def setup_logging
     logger = Logger.new(STDOUT)
     logger.formatter = proc { |severity, datetime, progname, msg| "#{datetime} #{severity}: #{msg}\n" }
     logger.level = Logger::FATAL
-
-      #opts.on('-v', '--verbose', 'Turn on verbose') do
-      #  @options[:verbose] = true
-      #  @logger.level = Logger::DEBUG
-      #end
-
     logger
   end
 
@@ -45,18 +44,21 @@ end
 
 module ListFiles
   def list_files!(dir)
-    `ls -al #{dir}`
+    out = `ls -al #{dir}`
+    out
   end
 end
 
 
 class Script
   include ScriptBase
-  attr_accessor :log, :options
+  attr_accessor :log, :options, :optparse
 
   def initialize
     @log = setup_logging()
-    @options = setup_basic_options()
+    @options = OpenStruct.new 
+    @optparse = setup_basic_options(@options)
+
   end
 end
 
@@ -65,6 +67,10 @@ class MyScript < Script
 
   def initialize
     super
+    @optparse.define('-l LIST', '--list LIST', 'List some files') do |list|
+      @options.list = list
+    end
+
   end
 end
 
@@ -72,9 +78,12 @@ def main()
   script = MyScript.new
 
   script.usage "You didn't specify any options" if not ARGV[0]
-  script.options.parse!
-  script.log.debug "Usage looks sane, invoking run!()"
-  script.run!(script.options['path'])
+  script.optparse.parse! ARGV
+
+  script.log.debug "Usage looks sane"
+  script.log.debug "script.options.list: #{script.options.list}" if script.options.list
+
+  puts script.list_files!(script.options.list) if script.options.list
 end
 
 main() if __FILE__ == $0
