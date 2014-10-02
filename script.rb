@@ -1,18 +1,20 @@
 #!/usr/bin/env ruby
 #encoding: utf-8
 #
-# perfect-script.rb - a ruby script template
-
-SCRIPT_NAME = File.expand_path(__FILE__)
-SCRIPT_DIR = File.dirname(SCRIPT_NAME)
-
-$:.unshift SCRIPT_DIR unless $:.include? SCRIPT_DIR
-
+# script.rb - a ruby script template
 require 'optparse'
 require 'logger'
 require 'ostruct'
 
-module ScriptBase
+class Script
+  attr_accessor :log, :options, :optparse
+
+  def initialize
+    @log = setup_logging()
+    @options = OpenStruct.new
+    @optparse = setup_basic_options(@options)
+  end
+
   def setup_basic_options(options, banner=nil)
     oparse = OptionParser.new do |opts|
       opts.banner = banner ? banner : "Usage: #{__FILE__} [options]"
@@ -41,22 +43,18 @@ module ScriptBase
   end
 end
 
-class Script
-  include ScriptBase
-
-  attr_accessor :log, :options, :optparse
-
-  def initialize
-    @log = setup_logging()
-    @options = OpenStruct.new 
-    @optparse = setup_basic_options(@options)
-  end
-end
-
 module ListFiles
+  require 'open3'
   def list_files!(dir)
-    out = `ls -al #{dir}`
-    out 
+    cmd = 'ls'
+    opts = '-l'
+    @log.debug("using command: #{cmd} #{opts} #{dir}")
+    result = {}
+    stdin, stdout, stderr, wait_thr = Open3.popen3(cmd, opts, dir)
+    result['output'] = stdout.gets(nil)
+    result['output'] = "#{result['output']} #{stderr.gets(nil)}"
+    result['code'] = wait_thr.value.exitstatus
+    result
   end 
 end
 
@@ -73,14 +71,17 @@ end
 
 def main!
   script = MyScript.new
-
   script.usage "You didn't specify any options" if not ARGV[0]
   script.optparse.parse! ARGV
-
   script.log.debug "Usage looks sane"
   script.log.debug "script.options.list: #{script.options.list}" if script.options.list
 
-  puts script.list_files!(script.options.list) if script.options.list
+  if script.options.list
+    dir_listing = script.list_files!(script.options.list)
+    puts dir_listing['output']
+    return dir_listing['code']
+  end
+  return 1
 end
 
-main!() if __FILE__ == $0
+exit(main!()) if __FILE__ == $0
